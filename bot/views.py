@@ -8,17 +8,18 @@ from .models import *
 
 from .forms import File
 
-def read():
-    path = default_storage.open(os.path.join('Savolar.docx'))
-    print(path)
+def read(filename):
+    path = default_storage.open(os.path.join(f'{filename}'))
     doc = docx.Document(path)
+    Test.objects.all().delete()
+    Answer.objects.all().delete()
     soni = 1
-    id = 1
+    id = 0
     fayl = []
     for par in doc.paragraphs:
         fayl.append(par.text)
-        print(par.text)
-        test = Test.objects.get(id=id)
+        if id!=0:
+            test = Test.objects.get(id=id)
         if soni % 5 == 1:
             if par.text:
                 test = Test.objects.create(question=par.text)

@@ -14,3 +14,6 @@ def answer_button(id = 1):
     for i in range(4):
         button.append([InlineKeyboardButton(f'{variants[i][0]}', callback_data=f'{variants[i][1]}')])
     return InlineKeyboardMarkup(button)
+
+def admin_main():
+    return ReplyKeyboardMarkup([["Reklama yuborish"], ['savol qo\'shish']])

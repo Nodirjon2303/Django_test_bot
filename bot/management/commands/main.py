@@ -13,19 +13,27 @@ state_name = 1
 state_question = 2
 state_main = 3
 state_last = 4
-
+state_admin_main = 5
+state_reklama = 6
+state_admin_word = 7
 
 def start(update, context):
     update.message.reply_text("Assalomu alaykum\n"
                               "Xush kelibsiz")
     id = update.effective_user.id
     username = update.effective_user.username
+
     try:
         Profile.objects.get_or_create(telegram_id=id, username=username)
+        user = Profile.objects.get(telegram_id=id)
     except Exception as e:
         update.message.reply_text("error sodir buldi @ruzimurodov_nodir ga murojaat qiling\n"
                                   f"{e}")
+    if user.status == 'admin':
+        update.message.reply_text("Admin panel", reply_markup=admin_main())
+        return state_admin_main
     update.message.reply_text("\nIsm familyangizni kiriting:")
+
     return state_name
 
 
@@ -94,7 +102,7 @@ def command_last(update, context):
         query.message.reply_text(f"Rahmat Sizning natijangiz: {context.user_data['right']}/10\n"
                                  f"Testni qayta boshlash uchun ixtiyoriy so'zni yuboring")
         xabar = f"username: @{user.username}\n" \
-                f"Ismi: {user.full_name}" \
+                f"Ismi: {user.full_name}\n" \
                 f"Natija: {context.user_data['right']}/10"
         admin = Profile.objects.filter(status='admin')
         for i in admin:
@@ -110,19 +118,55 @@ def command_last(update, context):
         return state_main
 
 
+def command_add(update, context):
+    update.message.reply_text("Savollarni Word variantda yuboring\n"
+                              "Yangi savollar yuborilganda eskilari o'chib ketadi  shu sababli fayl yuborishda ehtiyotkor bo'lishingizni so'rab qolardim")
+    return state_admin_word
+def command_adv(update, context):
+    update.message.reply_html("Foydalanuvchilarga yubormoqchi bo'lgan xabaringizni menga yuboring",
+                              reply_markup=ReplyKeyboardRemove())
+    return state_reklama
+
+def command_adv_send(update, context):
+    id = update.message.message_id
+    users = Profile.objects.all()
+    admins = Profile.objects.filter(status='admin')
+    soni = 0
+    for i in users:
+        try:
+            context.bot.forward_message(chat_id=i.telegram_id,from_chat_id=update.effective_user.id, message_id=id)
+            soni+=1
+        except Exception as e:
+            print(e)
+    for i in admins:
+        try:
+            context.bot.send_message(chat_id=i.telegram_id, text=f"xabar {soni} ta kishiga muaffaqiyatli yuborildi", reply_markup=admin_main())
+        except Exception as e:
+            print(e)
+    return state_admin_main
+def command_test_update(update, context):
+    print(update.message)
+    id = update.message['document']['file_id']
+    fileName = update.message['document']['file_name']
+    doc = context.bot.get_file(id)
+    print(fileName)
+    doc.download(f'media\\{fileName}')
+    read(fileName)
+    update.message.reply_text("File muaffaqiyatli yangilandi" ,reply_markup=admin_main())
+    return state_admin_main
+
 class Command(BaseCommand):
     help = 'Telegram-bot'
 
     def handle(self, *args, **options):
         request = Request(
-            connect_timeout=100,
-            read_timeout=100
+            connect_timeout=None,
+            read_timeout=None
         )
         bot = Bot(
             request=request,
             token=settings.TOKEN,
         )
-        print(bot.get_me())
 
         updater = Updater(
             bot=bot,
@@ -145,6 +189,20 @@ class Command(BaseCommand):
                 ],
                 state_last: [
                     CallbackQueryHandler(command_last)
+                ],
+                state_admin_main: [
+                    MessageHandler(Filters.regex('^(' + "Reklama yuborish" + ')$'), command_adv),
+                    MessageHandler(Filters.regex('^(' + "savol qo'shish" + ')$'), command_add),
+                ],
+                state_reklama: [
+                    MessageHandler(Filters.text, command_adv_send),
+                    MessageHandler(Filters.photo, command_adv_send),
+                    MessageHandler(Filters.video, command_adv_send),
+                    MessageHandler(Filters.audio, command_adv_send),
+                    MessageHandler(Filters.invoice, command_adv_send),
+                ],
+                state_admin_word: [
+                    MessageHandler(Filters.document, command_test_update)
                 ]
             },
             fallbacks=[
