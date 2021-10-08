@@ -16,6 +16,7 @@ state_last = 4
 state_admin_main = 5
 state_reklama = 6
 state_admin_word = 7
+state_add_admin = 8
 
 def start(update, context):
     update.message.reply_text("Assalomu alaykum\n"
@@ -155,6 +156,26 @@ def command_test_update(update, context):
     update.message.reply_text("File muaffaqiyatli yangilandi" ,reply_markup=admin_main())
     return state_admin_main
 
+def command_add_admin(update, context):
+    update.message.reply_html("Yangi adminning <b>id</b> raqamini yuboring", reply_markup=ReplyKeyboardRemove())
+    return state_add_admin
+
+def command_admin(update, context):
+    id  = update.message.text
+    if id.isdigit():
+        id = int(id)
+        try:
+            profile = Profile.objects.get(telegram_id=id)
+            profile.status = 'admin'
+            profile.save()
+        except Exception as e:
+            print(e)
+        update.message.reply_text("yangi admin muaffaqiyatli qo'shildi", reply_markup=admin_main())
+        return state_admin_main
+    else:
+        update.message.reply_text("siz noto'g'ri id yubordingiz", reply_markup=admin_main())
+        return state_admin_main
+
 class Command(BaseCommand):
     help = 'Telegram-bot'
 
@@ -193,6 +214,7 @@ class Command(BaseCommand):
                 state_admin_main: [
                     MessageHandler(Filters.regex('^(' + "Reklama yuborish" + ')$'), command_adv),
                     MessageHandler(Filters.regex('^(' + "savol qo'shish" + ')$'), command_add),
+                    MessageHandler(Filters.regex('^(' + "add admin" + ')$'), command_add_admin),
                 ],
                 state_reklama: [
                     MessageHandler(Filters.text, command_adv_send),
@@ -203,6 +225,9 @@ class Command(BaseCommand):
                 ],
                 state_admin_word: [
                     MessageHandler(Filters.document, command_test_update)
+                ],
+                state_add_admin: [
+                    MessageHandler(Filters.text, command_admin)
                 ]
             },
             fallbacks=[

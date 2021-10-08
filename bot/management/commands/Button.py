@@ -16,4 +16,4 @@ def answer_button(id = 1):
     return InlineKeyboardMarkup(button)
 
 def admin_main():
-    return ReplyKeyboardMarkup([["Reklama yuborish"], ['savol qo\'shish']])
+    return ReplyKeyboardMarkup([["Reklama yuborish"], ['savol qo\'shish'], ['add admin']], resize_keyboard=True)
