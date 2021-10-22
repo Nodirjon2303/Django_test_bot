@@ -77,12 +77,7 @@ WSGI_APPLICATION = 'Django_test_bot.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'd6f466t1um3mev',
-        'USER': 'pkozqkiysaxchr',
-        'PASSWORD': '710200ffa18f118057cf6e1e5d492a7bea51753e7a82178bc39d09edbd436b91',
-        'HOST': 'ec2-52-86-123-180.compute-1.amazonaws.com',
-        'PORT': '5432',
+        "YOUR DATABASE"
     }
 }
 
